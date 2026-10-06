@@ -1,0 +1,114 @@
+/* BiGaRx Studio - estetica inspirada en jamovi */
+:root {
+  --azul: #2c5aa0;
+  --azul2: #3e7bd1;
+  --azul-claro: #e8f0fb;
+  --gris: #f1f2f4;
+  --gris2: #e2e4e8;
+  --borde: #cfd3da;
+  --texto: #2b2f36;
+  --suave: #6b7280;
+}
+html, body { height: 100%; margin: 0; overflow: hidden; }
+body { font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+       font-size: 13px; color: var(--texto); background: #fff; }
+.container-fluid { padding: 0 !important; }
+
+/* ---- Barra superior ---- */
+.barra { display: flex; align-items: flex-end; height: 44px; padding: 0 14px;
+         background: linear-gradient(180deg, #3f78c9 0%, #2c5aa0 100%); color: #fff; }
+.marca { align-self: center; font-size: 18px; margin-right: 26px; letter-spacing: .3px; }
+.marca b { font-weight: 700; }
+.marca span { font-weight: 300; margin-left: 4px; opacity: .9; }
+.pestanas { display: flex; gap: 2px; }
+.pestana { display: inline-block; padding: 8px 20px 9px; color: #dfe9f8 !important;
+           text-decoration: none !important; border-radius: 6px 6px 0 0; font-size: 14px; }
+.pestana:hover { background: rgba(255,255,255,.12); color: #fff !important; }
+.pestana.activa { background: var(--gris); color: var(--azul) !important; font-weight: 600; }
+.barra-der { margin-left: auto; align-self: center; font-size: 12px; opacity: .85; }
+
+/* ---- Cinta ---- */
+.cinta { display: flex; align-items: center; gap: 0; min-height: 70px; padding: 6px 10px;
+         background: var(--gris); border-bottom: 1px solid var(--borde); }
+.cinta-grupo { display: flex; align-items: center; gap: 6px; padding: 0 14px;
+               border-right: 1px solid var(--borde); }
+.cinta-grupo:last-child { border-right: none; }
+.cinta-grupo .form-group, .cinta-grupo .shiny-input-container { margin-bottom: 0 !important; }
+.cinta-grupo .shiny-input-container:not(.shiny-input-container-inline) { width: auto; }
+.cinta-grupo .input-group { width: 280px; }
+.cinta-grupo .progress { display: none; }
+.cinta-btn { display: inline-flex !important; flex-direction: column; align-items: center; justify-content: center;
+             gap: 4px; min-width: 84px; height: 58px; padding: 4px 8px !important;
+             background: transparent !important; border: 1px solid transparent !important;
+             border-radius: 4px; color: var(--texto) !important; font-size: 12px; box-shadow: none !important; }
+.cinta-btn i, .cinta-btn .fa, .cinta-btn svg { font-size: 22px; color: var(--azul); }
+.cinta-btn:hover { background: #fff !important; border-color: var(--borde) !important; }
+
+/* ---- Cuerpo ---- */
+.principal { display: flex; height: calc(100vh - 116px); }
+.panel-izq { flex: 0 0 46%; max-width: 640px; min-width: 360px; overflow: auto;
+             border-right: 1px solid var(--borde); background: var(--gris); }
+.panel-der { flex: 1; overflow: auto; background: #fff; padding: 0 28px 40px; }
+.hoja-info { padding: 6px 10px; font-size: 12px; color: var(--suave); background: #fff;
+             border-bottom: 1px solid var(--gris2); }
+#hoja { background: #fff; }
+.handsontable th { background: #eef1f5; font-weight: 600; }
+
+/* ---- Opciones (estilo jamovi) ---- */
+.opciones { padding: 0 0 30px; }
+.op-cabecera { display: flex; justify-content: space-between; align-items: center;
+               padding: 12px 16px; font-size: 16px; font-weight: 600; color: var(--azul);
+               background: #fff; border-bottom: 1px solid var(--borde); position: sticky; top: 0; z-index: 5; }
+.op-cabecera a { color: var(--azul); font-size: 18px; }
+.op-seccion { margin: 8px 10px; background: #fff; border: 1px solid var(--gris2); border-radius: 4px; }
+.op-seccion > summary { cursor: pointer; list-style: none; padding: 9px 12px; font-weight: 600;
+                        color: var(--texto); user-select: none; }
+.op-seccion > summary::-webkit-details-marker { display: none; }
+.op-seccion > summary::before { content: "\25B8"; display: inline-block; width: 16px; color: var(--azul);
+                                transition: transform .15s; }
+.op-seccion[open] > summary::before { transform: rotate(90deg); }
+.op-seccion[open] > summary { border-bottom: 1px solid var(--gris2); }
+.op-cuerpo { padding: 10px 14px 4px; }
+.op-cuerpo label { font-weight: 500; font-size: 12.5px; }
+.op-cuerpo .form-group { margin-bottom: 10px; }
+.op-cuerpo .checkbox, .op-cuerpo .radio { margin-top: 2px; margin-bottom: 4px; }
+.op-cuerpo .irs--shiny .irs-bar { background: var(--azul2); border-color: var(--azul2); }
+.op-cuerpo .irs--shiny .irs-single { background: var(--azul); }
+.op-cuerpo .btn { margin: 2px 0; }
+.op-cuerpo .shiny-download-link { display: block; width: 100%; margin-bottom: 6px; text-align: left; }
+.btn-accion { background: var(--azul) !important; color: #fff !important; border: none !important; }
+.btn-accion:hover { background: var(--azul2) !important; }
+#vars_mostrar .shiny-options-group, #grupos_mostrar .shiny-options-group { columns: 2; }
+
+/* ---- Resultados (tablas APA) ---- */
+.res-cabecera { position: sticky; top: 0; background: #fff; z-index: 5; padding: 12px 0 8px;
+                font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--suave);
+                border-bottom: 1px solid var(--gris2); margin-bottom: 10px; }
+.res-seccion h2 { font-size: 20px; font-weight: 600; color: var(--azul); margin: 10px 0 2px; }
+.res-sub { color: var(--suave); font-size: 12.5px; margin-bottom: 16px; }
+.res-tabla { margin: 0 0 26px; display: inline-block; min-width: 50%; max-width: 100%; overflow-x: auto; }
+.res-titulo { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.res-tabla table { border-collapse: collapse; font-size: 12.5px; }
+.res-tabla thead th { border-top: 2px solid #333; border-bottom: 1px solid #333; padding: 5px 12px;
+                      font-weight: 600; text-align: center; white-space: nowrap; }
+.res-tabla tbody td { padding: 3px 12px; white-space: nowrap; }
+.res-tabla tbody tr:last-child td { border-bottom: 2px solid #333; }
+.res-tabla td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.res-tabla td.txt { text-align: left; }
+.res-tabla tbody tr:hover td { background: var(--azul-claro); }
+.res-nota { font-size: 11.5px; color: var(--suave); margin-top: 5px; font-style: italic; }
+.res-grafico { margin: 6px 0 28px; }
+.res-grafico .shiny-plot-output { border: 1px solid var(--gris2); display: inline-block; }
+.res-error { margin: 30px 0; padding: 14px 16px; border-left: 4px solid #c0392b; background: #fdecea;
+             color: #8e2a1f; border-radius: 3px; }
+.res-error i { margin-right: 8px; }
+.res-ref { margin-top: 20px; padding-top: 10px; border-top: 1px solid var(--gris2);
+           font-size: 11.5px; color: var(--suave); }
+
+/* Notificaciones y modales */
+#shiny-notification-panel { bottom: 16px; right: 16px; }
+.modal-header { background: var(--azul); color: #fff; }
+.op-ayuda { font-size: 11.5px; color: var(--suave); margin: -2px 0 8px; line-height: 1.35; }
+.res-aviso { margin: 8px 0 14px; padding: 9px 12px; background: var(--azul-claro); border-left: 3px solid var(--azul);
+             font-size: 12.5px; border-radius: 3px; }
+.res-aviso i { color: var(--azul); margin-right: 6px; }
