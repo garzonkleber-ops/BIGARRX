@@ -55,3 +55,9 @@ y sube el nuevo `manifest.json`.
 - **Datos composicionales**: transformaciones clr (con inversa generalizada) y alr; aviso automático.
 - **T² de Hotelling por pares** con ajuste de Bonferroni u Holm.
 - **χ² de Bartlett**, valores singulares (escala E), inercia θ² opcional, invertir ejes, logaritmo de las variables.
+
+## Versión 2.1 (7 de octubre de 2026): corrección de las elipses
+
+- Las elipses de Krzanowski se calculan en una sola escala, la de W: centros, varianzas y covarianzas. Es la opción recomendada.
+- La versión publicada por Amaro et al. (2008) queda como opción aparte, marcada como no coherente, solo para reproducir sus tablas.
+- Detalles, tabla de verificación con Iris y simulación revisada: `validacion/ELIPSES_escala_W.md`.

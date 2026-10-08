@@ -39,7 +39,7 @@ opciones_grafico <- function(cb, ...) {
     etiq_var_tam = 3.4, etiq_var_color = NULL, etiq_media_tam = 4, etiq_ind_tam = 2.4,
     evitar_solape = TRUE,
     titulo = "Biplot canónico", subtitulo = "", xlab = "", ylab = "", pie = "",
-    tema = "minimal", tam_base = 13, fuente = "sans", leyenda = "right", titulo_leyenda = "Grupo",
+    tema = "minimal", tam_base = 13, fuente = "sans", leyenda = "bottom", titulo_leyenda = "Grupo",
     lineas_cero = TRUE, cuadricula = TRUE, fondo = "#FFFFFF",
     xlim = c(NA, NA), ylim = c(NA, NA),
     boot_medias = TRUE, boot_variables = TRUE, boot_nubes = FALSE, boot_color = "#C2410C"

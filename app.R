@@ -105,18 +105,29 @@ ui <- fluidPage(
 
               seccion("Regiones de confianza", abierta = TRUE,
                   selectInput("region", "Tipo",
-                              c("Elipses bootstrap (recomendado)" = "boot",
-                                "Elipses (Krzanowski / Amaro 2008)" = "ellipse",
+                              c("Elipses de Krzanowski, escala W (recomendado)" = "ellipse",
+                                "Elipses bootstrap" = "boot",
+                                "Elipses de Amaro (2008) tal como se publicaron (no coherentes)" = "ellipse_amaro",
                                 "Círculos chi²" = "chi2", "Círculos t" = "t",
                                 "Círculos Bonferroni" = "bonferroni"), selected = "ellipse"),
                   sliderInput("conf", "Nivel de confianza", 0.80, 0.99, 0.95, 0.01),
-                  tags$p(class = "op-ayuda", "En una simulación con Iris, las elipses de Krzanowski y los",
-                         "círculos cubrieron solo el 57-67 % de las medias alejadas del origen; las elipses",
-                         "bootstrap reproducen la variabilidad real. Los círculos siguen siendo útiles para",
-                         "comparar pares de grupos."),
+                  conditionalPanel("input.region == 'ellipse'",
+                      radioButtons("theta_est", "Estimador de θ (Krzanowski)",
+                                   c("1 + λ/(K−1)  (Amaro et al., 2008)" = "uno_mas",
+                                     "λ/(K−1)  (cuadrado medio)" = "ms")),
+                      tags$p(class = "op-ayuda", "Centros, varianzas y covarianzas en la escala de W. Cobertura",
+                             "simulada al 95 %: Iris 98,5-99 %; cerámica romana 93-97 %.")),
+                  conditionalPanel("input.region == 'ellipse_amaro'",
+                      tags$p(class = "op-ayuda", "Reproduce las tablas 4-7 del artículo, pero mezcla escalas: las",
+                             "coordenadas de las ecuaciones 3-4 se dividen entre √(n−K) y θ se construye con el",
+                             "valor singular. En la simulación cubrió solo el 56-94 %. Úsala solo para",
+                             "reproducir el artículo.")),
                   conditionalPanel("input.region == 'boot'",
-                      tags$p(class = "op-ayuda", "Usa las réplicas, la semilla y el tipo de intervalo de la sección",
-                             "Bootstrap; se calcula automáticamente."))),
+                      tags$p(class = "op-ayuda", "Usa las réplicas y la semilla de la sección Bootstrap; se calcula",
+                             "automáticamente. Cobertura simulada: Iris 88-92 %; cerámica 86-94 %.")),
+                  conditionalPanel("input.region == 'chi2' || input.region == 't' || input.region == 'bonferroni'",
+                      tags$p(class = "op-ayuda", "Suponen ejes fijos: sirven para comparar pares de grupos, pero",
+                             "subestiman la incertidumbre de la posición de cada media (cobertura simulada 37-93 %)."))),
 
               seccion("Resultados a mostrar",
                   checkboxGroupInput("tablas", NULL,
@@ -214,7 +225,7 @@ ui <- fluidPage(
                   selectInput("tema", "Tema", temas),
                   sliderInput("tam_base", "Tamaño de letra", 8, 24, 13, 1),
                   selectInput("fuente", "Fuente", c("Sans" = "sans", "Serif" = "serif", "Mono" = "mono")),
-                  selectInput("leyenda", "Leyenda", c("Derecha" = "right", "Abajo" = "bottom",
+                  selectInput("leyenda", "Leyenda", selected = "bottom", c("Abajo" = "bottom", "Derecha" = "right",
                                                       "Arriba" = "top", "Izquierda" = "left", "Sin leyenda" = "none")),
                   checkboxInput("cuadricula", "Cuadrícula", TRUE),
                   checkboxInput("lineas_cero", "Líneas en el origen", TRUE),
@@ -463,11 +474,13 @@ server <- function(input, output, session) {
     tryCatch(withCallingHandlers({
       cb <- if (dm$dos) {
         bigarx_manova2(dm$X, dm$g, dm$g2, efecto = input$efecto, transform = input$transform,
+                       theta_est = input$theta_est,
                        conf = input$conf, region = input$region, ndim = 10, na_action = na,
                        impute_rank = input$impute_rank, singular = sing,
                        nombre_A = input$grupo, nombre_B = input$grupo2)
       } else {
         bigarx_canonical(dm$X, dm$g, transform = input$transform, conf = input$conf, region = input$region,
+                         theta_est = input$theta_est,
                          ndim = 10, na_action = na, impute_rank = input$impute_rank, singular = sing)
       }
       cb$.composicional <- dm$composicional
@@ -669,10 +682,11 @@ server <- function(input, output, session) {
       }
     } else {
       rg <- canonical_regions(cb, ax)
-      out$regiones <- if (cb$region == "ellipse") {
+      out$regiones <- if (cb$region %in% c("ellipse", "ellipse_amaro")) {
         data.frame(Grupo = rg$grupo, `Centro X` = rg$centro1, `Centro Y` = rg$centro2, `Var X` = rg$var1,
                    `Var Y` = rg$var2, Cov = rg$cov, `Semieje mayor` = rg$semieje_mayor,
-                   `Semieje menor` = rg$semieje_menor, `Ángulo (°)` = rg$angulo, `Área` = rg$area,
+                   `Semieje menor` = rg$semieje_menor, `Orientación eje mayor (°)` = rg$direccion_eje_mayor,
+                   `Área` = rg$area, `Definida positiva` = ifelse(rg$definida_positiva, "sí", "no"),
                    check.names = FALSE)
       } else {
         data.frame(Grupo = rg$grupo, `Centro X` = rg$centro1, `Centro Y` = rg$centro2, Radio = rg$semieje_mayor,
@@ -731,7 +745,8 @@ server <- function(input, output, session) {
           "Las elipses bootstrap solo están disponibles para un factor y para el biplot total."))
     tfm <- c(ninguna = "", clr = " · clr", alr = paste0(" · alr (ref.: ", input$alr_ref, ")"))[[input$composicional]]
     if (isTRUE(input$log_vars) && input$composicional == "ninguna") tfm <- " · logaritmo natural"
-    region_txt <- c(ellipse = "elipses de Krzanowski", chi2 = "círculos chi²", t = "círculos t",
+    region_txt <- c(ellipse = "elipses de Krzanowski, escala W", ellipse_amaro = "elipses de Amaro (2008) publicadas",
+                    chi2 = "círculos chi²", t = "círculos t",
                     bonferroni = "círculos Bonferroni", boot = "elipses bootstrap")[[cb$region]]
     calidad_txt <- if (identical(input$calidad_def, "principal"))
       "Calidad: coseno² sobre las coordenadas principales (Amaro et al., 2004)." else
@@ -775,7 +790,15 @@ server <- function(input, output, session) {
       bloque("variables", "Variables: coordenadas, calidad y correlación con los ejes", nota = calidad_txt),
       bloque("corr_total", "Correlaciones totales entre las variables y los ejes",
              nota = "Correlación sobre todos los individuos (sin quitar el efecto de grupo), como en la tabla 9 de Amaro et al. (2008)."),
-      bloque("regiones", sprintf("Regiones de confianza al %s%% (%s)", format(100 * cb$conf), region_txt), digits = 4),
+      bloque("regiones", sprintf("Regiones de confianza al %s%% (%s)", format(100 * cb$conf), region_txt), digits = 4,
+             nota = switch(cb$region,
+               ellipse = paste0("Centros y covarianzas en la escala de W (varianza dentro de los grupos = 1). θ estimado con ",
+                                if (identical(input$theta_est, "ms")) "λ/(K−1)" else "1 + λ/(K−1)",
+                                ", λ = autovalores de SCH·W⁻¹. Orientación: ángulo del eje mayor desde el eje X."),
+               ellipse_amaro = paste("Versión publicada: centros en escala W y covarianzas con coordenadas divididas",
+                                     "entre √(n−K); no son coherentes. Solo para reproducir el artículo."),
+               boot = "Elipse normal que contiene el nivel indicado de las réplicas bootstrap de cada media.",
+               "Radio en la escala de W.")),
       bloque("pares", "Comparaciones por pares: T² de Hotelling",
              nota = sprintf("W combinada del modelo (gl = %d). Ajuste de p: %s.", cb$.krz$dfE,
                             c(bonferroni = "Bonferroni", holm = "Holm", none = "ninguno")[[input$ajuste_p]]),

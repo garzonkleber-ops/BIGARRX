@@ -363,15 +363,17 @@ print.bigarx_imputation <- function(x, ...) {
 # 11, 1071-1077.
 #
 bigarx_canonical <- function(X, groups, transform = c("center", "standardize"),
-                             conf = 0.95, region = c("chi2", "t", "bonferroni", "ellipse", "boot"),
+                             conf = 0.95,
+                             region = c("chi2", "t", "bonferroni", "ellipse", "ellipse_amaro", "boot"),
                              ndim = 3, fix_signs = TRUE,
                              na_action = c("fail", "impute"), impute_rank = 2,
-                             singular = c("stop", "ginv")) {
+                             singular = c("stop", "ginv"), theta_est = c("uno_mas", "ms")) {
   cl <- match.call()
   na_action <- match.arg(na_action)
   transform <- match.arg(transform)
   region <- match.arg(region)
   singular <- match.arg(singular)
+  theta_est <- match.arg(theta_est)
   X <- .as_data_matrix(X, allow_na = na_action == "impute")
   if (missing(groups) || length(groups) != nrow(X)) {
     stop("`groups` debe tener una entrada por fila de `X`.", call. = FALSE)
@@ -405,7 +407,7 @@ bigarx_canonical <- function(X, groups, transform = c("center", "standardize"),
   E <- crossprod(Z - M[as.integer(g), , drop = FALSE])
   out <- .canon_core(Z = Z, g = g, M = M, nk = nk, E = E, dfE = n - K, H = NULL, dfH = K - 1,
                      conf = conf, region = region, ndim = ndim, fix_signs = fix_signs,
-                     singular = singular, var_names = colnames(X))
+                     singular = singular, var_names = colnames(X), theta_est = theta_est)
   out$preprocessing <- pp$info
   out$imputation <- imputation
   out$call <- cl
@@ -422,7 +424,7 @@ bigarx_canonical <- function(X, groups, transform = c("center", "standardize"),
 # propios, theta = d^2 / dfE = valores propios de H E^-1.
 .canon_core <- function(Z, g, M, nk, E, dfE, H = NULL, dfH, conf = 0.95,
                         region = "chi2", ndim = 3, fix_signs = TRUE, singular = "stop",
-                        var_names = colnames(Z)) {
+                        var_names = colnames(Z), theta_est = "uno_mas") {
   n <- nrow(Z); p <- ncol(Z); K <- nrow(M)
   W <- E / dfE
   eW <- eigen(W, symmetric = TRUE)
@@ -470,7 +472,7 @@ bigarx_canonical <- function(X, groups, transform = c("center", "standardize"),
   df <- p_eff * dfH
   alpha <- 1 - conf
   rad <- switch(region,
-    chi2 = , ellipse = , boot = sqrt(stats::qchisq(conf, 2) / nk),
+    chi2 = , ellipse = , ellipse_amaro = , boot = sqrt(stats::qchisq(conf, 2) / nk),
     t = stats::qt(1 - alpha / 2, dfE) / sqrt(nk),
     bonferroni = stats::qt(1 - alpha / (2 * K * (K - 1) / 2), dfE) / sqrt(nk))
   names(rad) <- rownames(M)
@@ -518,7 +520,17 @@ bigarx_canonical <- function(X, groups, transform = c("center", "standardize"),
     imputation = NULL,
     singular = p_eff < p,
     .Wmh = Wmh, .V = V, .Z = Z, .W = W, .M = M,
-    .krz = list(xiE = Pm / sqrt(dfE), theta = 1 + (d / sqrt(dfE)) / dfH,
+    # Elementos de las regiones de Krzanowski (1989) / Amaro et al. (2008).
+    #   P      : coordenadas de las medias en la escala de W (todas las r dimensiones);
+    #            es la misma escala de x$rows, del termino 1/n_i y de los individuos.
+    #   d2     : d^2 = autovalores de W^-1/2 SCH W^-1/2 = gl_E * (autovalores de H E^-1).
+    #   theta  : autovalores poblacionales de (SCH / gl_H) W^-1 (Anderson, 1984), estimados con
+    #            1 + d^2 / gl_H ("uno_mas") o con d^2 / gl_H ("ms").
+    #   xiE, theta_amaro: solo para la version publicada (Amaro et al., 2008), que mezcla escalas.
+    .krz = list(P = Pm, d2 = d^2,
+                theta = if (identical(theta_est, "ms")) d^2 / dfH else 1 + d^2 / dfH,
+                theta_est = theta_est,
+                xiE = Pm / sqrt(dfE), theta_amaro = 1 + (d / sqrt(dfE)) / dfH,
                 gamma = dfH / dfE, n = dfE + K, K = K, nk = nk,
                 dfE = dfE, dfH = dfH, p_eff = p_eff),
     call = NULL
@@ -534,7 +546,7 @@ invertir_ejes <- function(x, ejes) {
   f <- function(A) { if (is.null(A)) return(A); k <- ejes[ejes <= ncol(A)]; A[, k] <- -A[, k]; A }
   x$rows <- f(x$rows); x$cols <- f(x$cols); x$individuals <- f(x$individuals)
   x$structure <- f(x$structure); x$structure_total <- f(x$structure_total)
-  x$.V <- f(x$.V); x$.krz$xiE <- f(x$.krz$xiE)
+  x$.V <- f(x$.V); x$.krz$xiE <- f(x$.krz$xiE); x$.krz$P <- f(x$.krz$P)
   x
 }
 
@@ -562,7 +574,7 @@ summary.bigarx_canonical <- function(object, axes = c(1, 2), ...) {
   medias <- data.frame(object$rows[, axes, drop = FALSE],
                        calidad = rowSums(object$quality_rows[, axes, drop = FALSE]),
                        n = object$n_groups, check.names = FALSE)
-  if (!identical(object$region, "ellipse")) medias$radio <- object$radius
+  if (!.es_elipse(object$region)) medias$radio <- object$radius
   vars <- data.frame(object$cols[, axes, drop = FALSE],
                      calidad = rowSums(object$quality_cols[, axes, drop = FALSE]),
                      correlacion = object$structure[, axes, drop = FALSE],
@@ -590,13 +602,13 @@ print.summary.bigarx_canonical <- function(x, digits = 3, ...) {
   lab <- paste(x$axes, collapse = "-")
   cat(sprintf("\nMedias de grupo (calidad en el plano %s, %%)\n", lab))
   print(round(x$rows, digits))
-  if (identical(x$region, "ellipse")) {
+  if (.es_elipse(x$region)) {
     cat(sprintf("\nElipses de confianza al %s%% (Amaro et al., 2008)\n", format(100 * x$conf)))
   } else {
     cat(sprintf("\nRegiones de confianza: c\u00EDrculos %s al %s%% (radio por grupo arriba)\n",
                 x$region, format(100 * x$conf)))
   }
-  if (identical(x$region, "ellipse")) {
+  if (.es_elipse(x$region)) {
     rg <- x$regions
     rg[-1] <- lapply(rg[-1], round, digits + 1)
     print(rg, row.names = FALSE)
@@ -746,41 +758,73 @@ predict.bigarx_canonical <- function(object, newdata, ...) {
   out[, seq_len(object$ndim), drop = FALSE]
 }
 
-# Matriz 2x2 de varianzas y covarianzas de cada media (Amaro et al., 2008,
-# ecuaciones 3 y 4, basadas en Krzanowski, 1989), en los ejes `axes`.
+.es_elipse <- function(region) region %in% c("ellipse", "ellipse_amaro")
+
+# Matriz 2x2 de varianzas y covarianzas de cada media en los ejes `axes`
+# (Amaro et al., 2008, ecuaciones 3 y 4; Krzanowski, 1989).
+#
+# region = "ellipse" (por defecto, coherente): todo en la escala de W.
+#   Var(P_il) = 1/n_i + [ xi_il^2 / 2 + sum_{j != l} theta_l (theta_j + g theta_l) /
+#                         (g (theta_j - theta_l)^2) xi_ij^2 ] / gl_E
+#   Cov(P_ij, P_il) = - theta_j theta_l (1 + g) / (gl_E g (theta_j - theta_l)^2) xi_ij xi_il
+#   con xi = P (escala W, la misma de x$rows), theta = autovalores de (SCH/gl_H) W^-1
+#   y g = gl_H / gl_E.
+# region = "ellipse_amaro": la version publicada (xi = P / sqrt(gl_E) y theta construido
+#   con el valor singular), que reproduce las tablas 4 a 7 del articulo pero mezcla escalas.
 .krz_cov <- function(x, axes) {
   kz <- x$.krz
-  xi <- kz$xiE
-  th <- kz$theta
+  amaro <- identical(x$region, "ellipse_amaro")
+  xi <- if (amaro) kz$xiE else kz$P
+  th <- if (amaro) kz$theta_amaro else kz$theta
   gam <- kz$gamma
   s <- length(th)
+  if (anyDuplicated(signif(th, 12))) {
+    stop("Hay valores propios repetidos: las ecuaciones de Krzanowski no están definidas.", call. = FALSE)
+  }
   lapply(seq_len(nrow(xi)), function(i) {
     v <- vapply(axes, function(l) {
       o <- setdiff(seq_len(s), l)
       1 / kz$nk[i] + (0.5 * xi[i, l]^2 +
-        sum(th[l] * (th[o] + gam * th[l]) / (gam * (th[o] - th[l])^2) * xi[i, o]^2)) /
-        kz$dfE
+        sum(th[l] * (th[o] + gam * th[l]) / (gam * (th[o] - th[l])^2) * xi[i, o]^2)) / kz$dfE
     }, numeric(1))
     j <- axes[1]; l <- axes[2]
-    cv <- -th[j] * th[l] * (1 + gam) / (kz$dfE * gam * (th[j] - th[l])^2) *
-      xi[i, j] * xi[i, l]
-    matrix(c(v[1], cv, cv, v[2]), 2, 2)
+    cv <- -th[j] * th[l] * (1 + gam) / (kz$dfE * gam * (th[j] - th[l])^2) * xi[i, j] * xi[i, l]
+    S <- matrix(c(v[1], cv, cv, v[2]), 2, 2)
+    ev <- eigen(S, symmetric = TRUE, only.values = TRUE)$values
+    attr(S, "definida_positiva") <- isSymmetric(S) && min(ev) > 0
+    S
   })
 }
 
-# Puntos del contorno de cada region de confianza (circulo o elipse).
+# Puntos del contorno (z - P_i)' S_i^-1 (z - P_i) = chi2_2 de una elipse; comprueba la ecuacion.
+.contorno_elipse <- function(centro, S, q, npts = 120) {
+  e <- eigen(S, symmetric = TRUE)
+  if (min(e$values) <= 0) {
+    stop("La matriz de covarianzas de la región no es definida positiva.", call. = FALSE)
+  }
+  t <- seq(0, 2 * pi, length.out = npts)
+  pts <- e$vectors %*% (sqrt(e$values * q) * rbind(cos(t), sin(t)))
+  err <- max(abs(colSums(pts * solve(S, pts)) - q))
+  if (err > 1e-8 * q) stop("El contorno no cumple su ecuación (error numérico).", call. = FALSE)
+  list(x = centro[1] + pts[1, ], y = centro[2] + pts[2, ], error = err)
+}
+
+# Puntos del contorno de cada region de confianza (circulo o elipse), en la escala de x$rows.
 .regions_df <- function(x, axes, grupo, npts = 120) {
   P <- x$rows[, axes, drop = FALSE]
-  t <- seq(0, 2 * pi, length.out = npts)
-  if (!identical(x$region, "ellipse")) {
+  if (!.es_elipse(x$region)) {
     return(.circle_df(P[, 1], P[, 2], x$radius, grupo, npts))
   }
   q <- stats::qchisq(x$conf, 2)
   S <- .krz_cov(x, axes)
   do.call(rbind, lapply(seq_len(nrow(P)), function(i) {
-    e <- eigen(S[[i]], symmetric = TRUE)
-    pts <- e$vectors %*% (sqrt(pmax(e$values, 0) * q) * rbind(cos(t), sin(t)))
-    data.frame(x = P[i, 1] + pts[1, ], y = P[i, 2] + pts[2, ], grupo = grupo[i])
+    if (!isTRUE(attr(S[[i]], "definida_positiva"))) {
+      warning(sprintf("La región del grupo %s no es definida positiva y no se dibuja.", rownames(P)[i]),
+              call. = FALSE)
+      return(NULL)
+    }
+    ce <- .contorno_elipse(P[i, ], S[[i]], q, npts)
+    data.frame(x = ce$x, y = ce$y, grupo = grupo[i])
   }))
 }
 
@@ -812,10 +856,12 @@ canonical_regions <- function(x, axes = c(1, 2)) {
   .check_axes(x, axes)
   P <- x$rows[, axes, drop = FALSE]
   q <- stats::qchisq(x$conf, 2)
-  if (identical(x$region, "ellipse")) {
+  if (.es_elipse(x$region)) {
     S <- .krz_cov(x, axes)
     filas <- lapply(seq_len(nrow(P)), function(i) {
       e <- eigen(S[[i]], symmetric = TRUE)
+      dp <- isTRUE(attr(S[[i]], "definida_positiva"))
+      err <- if (dp) .contorno_elipse(P[i, ], S[[i]], q)$error else NA_real_
       v <- e$vectors[, 1]
       dir <- atan2(v[2], v[1]) * 180 / pi
       dir <- ((dir + 90) %% 180) - 90
@@ -825,7 +871,8 @@ canonical_regions <- function(x, axes = c(1, 2)) {
                  semieje_menor = sqrt(e$values[2] * q),
                  angulo = 0.5 * atan(2 * s12 / (s1 - s2)) * 180 / pi,
                  direccion_eje_mayor = dir,
-                 area = pi * sqrt(det(S[[i]])) * q)
+                 area = pi * sqrt(max(det(S[[i]]), 0)) * q,
+                 definida_positiva = dp, error_contorno = err)
     })
     reg <- do.call(rbind, filas)
   } else {
@@ -833,11 +880,13 @@ canonical_regions <- function(x, axes = c(1, 2)) {
     reg <- data.frame(var1 = NA_real_, var2 = NA_real_, cov = NA_real_,
                       semieje_mayor = r, semieje_menor = r, angulo = 0,
                       direccion_eje_mayor = NA_real_,
-                      area = pi * r^2)
+                      area = pi * r^2, definida_positiva = TRUE, error_contorno = 0)
   }
   out <- data.frame(grupo = rownames(P), centro1 = P[, 1], centro2 = P[, 2], reg,
                     row.names = NULL)
   attr(out, "region") <- x$region
+  attr(out, "escala") <- if (identical(x$region, "ellipse_amaro"))
+    "centros en escala W; covarianzas de la version publicada (mezcla de escalas)" else "escala W (varianza dentro de los grupos = 1)"
   attr(out, "conf") <- x$conf
   out
 }

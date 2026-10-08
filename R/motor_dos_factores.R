@@ -27,9 +27,11 @@
 
 bigarx_manova2 <- function(X, A, B, efecto = c("total", "filas", "columnas", "interaccion"),
                            transform = c("center", "standardize"), conf = 0.95,
-                           region = c("chi2", "t", "bonferroni", "ellipse", "boot"), ndim = 3,
+                           region = c("chi2", "t", "bonferroni", "ellipse", "ellipse_amaro", "boot"), ndim = 3,
                            fix_signs = TRUE, na_action = c("fail", "impute"), impute_rank = 2,
-                           singular = c("stop", "ginv"), nombre_A = "A", nombre_B = "B") {
+                           singular = c("stop", "ginv"), nombre_A = "A", nombre_B = "B",
+                           theta_est = c("uno_mas", "ms")) {
+  theta_est <- match.arg(theta_est)
   efecto <- match.arg(efecto); transform <- match.arg(transform); region <- match.arg(region)
   na_action <- match.arg(na_action); singular <- match.arg(singular)
   X <- .as_data_matrix(X, allow_na = na_action == "impute")
@@ -57,31 +59,31 @@ bigarx_manova2 <- function(X, A, B, efecto = c("total", "filas", "columnas", "in
   proyectado <- FALSE
   if (efecto == "total") {
     mc <- medias(celda)
-    out <- .canon_core(Z, celda, mc$M, mc$nk, E, dfE, NULL, nc - 1, conf, region, ndim, fix_signs, singular, colnames(X))
+    out <- .canon_core(Z, celda, mc$M, mc$nk, E, dfE, NULL, nc - 1, conf, region, ndim, fix_signs, singular, colnames(X), theta_est = theta_est)
   } else if (efecto == "interaccion") {
     if (sc$df[["AB"]] < 2) stop("La interacción tiene un solo grado de libertad: no hay plano de interacción.", call. = FALSE)
     mc <- medias(celda)
     out <- .canon_core(Z, celda, mc$M, mc$nk, E, dfE, sc$H$AB, sc$df[["AB"]], conf,
-                       if (region == "boot") "chi2" else region, ndim, fix_signs, singular, colnames(X))
+                       if (region == "boot") "chi2" else region, ndim, fix_signs, singular, colnames(X), theta_est = theta_est)
   } else {
     f <- if (efecto == "filas") A else B
     key <- if (efecto == "filas") "A" else "B"
     mf <- medias(f)
     if (sc$df[[key]] >= 2) {
       out <- .canon_core(Z, f, mf$M, mf$nk, E, dfE, sc$H[[key]], sc$df[[key]], conf,
-                         if (region == "boot") "chi2" else region, ndim, fix_signs, singular, colnames(X))
+                         if (region == "boot") "chi2" else region, ndim, fix_signs, singular, colnames(X), theta_est = theta_est)
     } else {
       # Un solo grado de libertad: proyectar las medias del factor sobre el biplot total
       mc <- medias(celda)
       out <- .canon_core(Z, celda, mc$M, mc$nk, E, dfE, NULL, nc - 1, conf, "chi2", ndim, fix_signs,
-                         singular, colnames(X))
+                         singular, colnames(X), theta_est = theta_est)
       P <- mf$M %*% out$.Wmh %*% out$.V
       colnames(P) <- paste0("Eje", seq_len(ncol(P)))
       out$rows <- P[, seq_len(out$ndim), drop = FALSE]
       out$quality_rows <- .quality(P)
       out$groups <- f
       out$n_groups <- stats::setNames(mf$nk, rownames(mf$M))
-      reg <- if (region %in% c("ellipse", "boot")) "chi2" else region
+      reg <- if (region %in% c("ellipse", "ellipse_amaro", "boot")) "chi2" else region
       out$region <- reg
       Kf <- nlevels(f); alpha <- 1 - conf
       out$radius <- stats::setNames(switch(reg,

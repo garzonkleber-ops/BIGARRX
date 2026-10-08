@@ -7,7 +7,7 @@ if (file.exists("R/boot_canonico.R")) source("R/boot_canonico.R")
 r <- function(x, d = 4) round(x, d)
 cat("\n===================== 1. IRIS: Amaro, Vicente-Villardón y Galindo (2008) =====================\n")
 X <- iris[, 1:4]; g <- iris$Species; n <- nrow(X); K <- 3
-cb <- bigarx_canonical(X, g, region = "ellipse", ndim = 10)
+cb <- bigarx_canonical(X, g, region = "ellipse_amaro", ndim = 10)  # version publicada, para comparar con sus tablas
 
 cat("\nTabla 1. 'Valores propios' del artículo = valores singulares en la escala de E = sqrt(theta)\n")
 t1 <- data.frame(eje = 1:2, articulo = c(5.67, 0.53), app = sqrt(cb$canonical$valor_propio[1:2]),
@@ -40,7 +40,7 @@ t9 <- cbind(art_e1 = c(0.7919, -0.5308, 0.9850, 0.9728), total_e1 = tot[, 1],
             app_dentro_e1 = cb$structure[, 1], app_dentro_e2 = cb$structure[, 2])
 print(r(t9, 4))
 
-cat("\nTablas 4, 5 y 7. Elipses de Krzanowski\n")
+cat("\nTablas 4, 5 y 7. Elipses de Amaro (2008) tal como se publicaron (region = \"ellipse_amaro\")\n")
 rg <- canonical_regions(cb)
 t47 <- data.frame(grupo = c("G1", "G2", "G3"),
                   var1_art = c(0.0215, 0.0213, 0.0214), var1_app = rg$var1,
@@ -70,15 +70,17 @@ mt <- manova_tests(cb); print(r(mt, 4))
 sm <- summary(manova(as.matrix(X) ~ g), test = "Wilks")$stats
 cat("Wilks de R base:", r(sm[1, 2], 6), " F:", r(sm[1, 3], 3), "\n")
 
-cat("\n===================== 2. Validación empírica de las elipses (bootstrap) =====================\n")
+cat("\n===================== 2. Varianzas: version publicada, version coherente en escala W y bootstrap =====================\n")
 set.seed(2026)
 bt <- boot_canonical(X, g, B = 2000, axes = c(1, 2), seed = 2026)
 vb <- sapply(levels(g), function(k) {
   P <- cbind(bt$replicates[, paste0("media|", k, "|Eje1")], bt$replicates[, paste0("media|", k, "|Eje2")])
   c(var1 = var(P[, 1]), var2 = var(P[, 2]), cov = cov(P)[1, 2])
 })
-cmpv <- data.frame(grupo = levels(g), var1_krz = rg$var1, var1_boot = vb["var1", ],
-                   var2_krz = rg$var2, var2_boot = vb["var2", ], cov_krz = rg$cov, cov_boot = vb["cov", ])
+rgW <- canonical_regions(bigarx_canonical(X, g, region = "ellipse", ndim = 10))
+cmpv <- data.frame(grupo = levels(g), var1_publicada = rg$var1, var1_W = rgW$var1, var1_boot = vb["var1", ],
+                   var2_publicada = rg$var2, var2_W = rgW$var2, var2_boot = vb["var2", ],
+                   cov_W = rgW$cov, cov_boot = vb["cov", ])
 print(cbind(cmpv[1], r(cmpv[-1], 4)))
 
 cat("\n===================== 3. Arroz, Varela (1998), diapositivas 'BIPLOT CANÓNICO' =====================\n")

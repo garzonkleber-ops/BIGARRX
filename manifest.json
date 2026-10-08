@@ -2655,25 +2655,25 @@
   },
   "files": {
     "LEEME_publicar.md": {
-      "checksum": "e0e3387bee1baaa0fd6f986c5923a8e6"
+      "checksum": "779fb7a1b2c22123d90382d31a8afd59"
     },
     "R/boot_canonico.R": {
       "checksum": "49ac69516594ce7e5c633c56b33b2f50"
     },
     "R/grafico.R": {
-      "checksum": "1e6f6b7030886eb7a3b11d1b11dee9d5"
+      "checksum": "90664204ea14a1f24b26e7053e27616f"
     },
     "R/motor_canonico.R": {
-      "checksum": "d95f60a5271ed94466b65ba6dcaf2406"
+      "checksum": "6b7be6c9e5c026dff4c91f0d58e5ad21"
     },
     "R/motor_dos_factores.R": {
-      "checksum": "ed1f311653a4e9b299ce652c32209e86"
+      "checksum": "affba81d661e06bba83bd1406525765b"
     },
     "R/tablas.R": {
       "checksum": "0990e7c86b9c408a18245f1355b3e0ec"
     },
     "app.R": {
-      "checksum": "d85ad142976397591a0bd203f4cd31e1"
+      "checksum": "df425814f4d3ecab5b4f8d683971847e"
     },
     "datos/arroz_varela.csv": {
       "checksum": "5a24683ffd4f204ee9021457dbd427df"
@@ -2696,14 +2696,23 @@
     "instalar_y_preparar.R": {
       "checksum": "ece4ed279e9a424e81a369416ed0845b"
     },
+    "validacion/ELIPSES_escala_W.md": {
+      "checksum": "5899ce65cfd565601b9625a4a87a9b6e"
+    },
     "validacion/comparar_articulos.R": {
-      "checksum": "117f15726fae0aca5c359c82764a62d8"
+      "checksum": "4cb8f428cc87f7010e23d3d3600f7a37"
+    },
+    "validacion/elipses_iris_escala_W.png": {
+      "checksum": "eefc8b6d8138b7012f3abdb7aa3f289d"
     },
     "validacion/simulacion_cobertura.R": {
-      "checksum": "ec7044d3718d0c5ab2782feab7be8b0b"
+      "checksum": "5b8535c536f9e0d38a709505e664b758"
     },
     "validacion/validar_dos_factores.R": {
       "checksum": "e3baaf3b7f8781bd4f58326b3330df5e"
+    },
+    "validacion/verificar_elipses.R": {
+      "checksum": "ee875ff764559956a6786402a5309de0"
     },
     "www/estilo.css": {
       "checksum": "bee82a1d02131f57981ff3ee1a69484b"
