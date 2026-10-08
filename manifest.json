@@ -2655,25 +2655,25 @@
   },
   "files": {
     "LEEME_publicar.md": {
-      "checksum": "779fb7a1b2c22123d90382d31a8afd59"
+      "checksum": "d2b3c54f89aafd211bc0d48c5cf3b4b1"
     },
     "R/boot_canonico.R": {
-      "checksum": "49ac69516594ce7e5c633c56b33b2f50"
+      "checksum": "4eb612558d27ed12f061995a95996735"
     },
     "R/grafico.R": {
-      "checksum": "95998e59522aff9e166c0d6a42b97c43"
+      "checksum": "9dc4025c5aa7b7cd602a270ea4d1257e"
     },
     "R/motor_canonico.R": {
-      "checksum": "6b7be6c9e5c026dff4c91f0d58e5ad21"
+      "checksum": "540ace2e62276f7f99fbce998804ac82"
     },
     "R/motor_dos_factores.R": {
-      "checksum": "affba81d661e06bba83bd1406525765b"
+      "checksum": "7f3b6d1264d7f945061d90a7961301fd"
     },
     "R/tablas.R": {
-      "checksum": "0990e7c86b9c408a18245f1355b3e0ec"
+      "checksum": "bedbccf7d17b57e17b2e1a718aea6c7e"
     },
     "app.R": {
-      "checksum": "6a0699a5e9ae04deefb0ad8288633bf7"
+      "checksum": "0231891ee3e605cf3e62d9a0b8cc9ed9"
     },
     "datos/arroz_varela.csv": {
       "checksum": "5a24683ffd4f204ee9021457dbd427df"

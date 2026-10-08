@@ -1,7 +1,7 @@
 # =============================================================================
 #  BIPLOT CANONICO / MANOVA BIPLOT  -  version independiente (extraida de BiGaRx 0.3.0)
 # =============================================================================
-#  Autor del paquete: Kleber Garzon (BiGaRx). Licencia GPL (>= 3).
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3). Paquete BiGaRx.
 #
 #  Este archivo contiene TODO lo necesario para el biplot canonico de una via,
 #  sin instalar BiGaRx. Basta con:   source("biplot_canonico_manova.R")

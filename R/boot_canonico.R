@@ -1,5 +1,6 @@
 # =============================================================================
 #  Bootstrap del biplot canonico
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3).
 # =============================================================================
 #  Remuestreo estratificado: en cada replica se extraen, con reemplazo, n_k
 #  individuos de cada grupo k (se conservan los tamanos de grupo). Se repite el

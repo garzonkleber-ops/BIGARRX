@@ -1,5 +1,6 @@
 # =============================================================================
 #  Grafico del biplot canonico 100 % personalizable (ggplot2)
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3).
 # =============================================================================
 
 paletas_disponibles <- c("Dark 3", "Set 2", "Okabe-Ito", "Viridis", "Zissou 1", "Grises")

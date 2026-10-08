@@ -2,6 +2,7 @@
 #  BiGaRx Studio - Biplot canonico / MANOVA biplot
 #  Aplicacion Shiny con diseno tipo jamovi. Los calculos estan en la carpeta R/
 #  (Shiny la carga automaticamente).
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3).
 # =============================================================================
 library(shiny)
 library(ggplot2)
@@ -41,7 +42,7 @@ ui <- fluidPage(
       div(class = "pestanas",
           actionLink("tab_datos", "Datos", class = "pestana activa"),
           actionLink("tab_analisis", "Análisis", class = "pestana")),
-      div(class = "barra-der", "Biplot canónico · MANOVA")),
+      div(class = "barra-der", "Biplot canónico · MANOVA · K. Garzón y R. Barrezueta")),
 
   # Cinta de herramientas
   div(class = "cinta", id = "cinta_datos",
@@ -811,7 +812,8 @@ server <- function(input, output, session) {
       else if (isTRUE(input$boot_on)) div(class = "res-nota", "Pulsa «Ejecutar bootstrap» en las opciones."),
       div(class = "res-ref", HTML(paste(
         "Referencias: Gabriel (1972); Amaro, Vicente-Villardón y Galindo (2004, 2008);",
-        "Krzanowski (1989); Aitchison (1986); Nieto, Galindo, Leiva y Vicente-Galindo (2015). Motor de cálculo: BiGaRx.")))
+        "Krzanowski (1989); Aitchison (1986); Nieto, Galindo, Leiva y Vicente-Galindo (2015). Motor de cálculo: BiGaRx.",
+        "<br>BiGaRx Studio · Autores: Kleber Garzón y Roxana Barrezueta.")))
     )
   })
 

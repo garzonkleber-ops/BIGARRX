@@ -1,5 +1,6 @@
 # =============================================================================
 #  Tablas de resultados con estilo APA (como en jamovi)
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3).
 # =============================================================================
 
 fmt_num <- function(x, digits = 3) {

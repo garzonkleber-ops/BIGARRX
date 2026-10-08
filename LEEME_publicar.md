@@ -1,5 +1,7 @@
 # BiGaRx Studio — app Shiny estilo jamovi
 
+**Autores:** Kleber Garzón y Roxana Barrezueta.
+
 Biplot canónico / MANOVA biplot con imputación de faltantes, bootstrap y un gráfico 100 % personalizable.
 
 ## Estructura

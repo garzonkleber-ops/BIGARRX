@@ -1,6 +1,7 @@
 # =============================================================================
 #  MANOVA biplot para arreglos de tratamientos con dos factores
 #  Amaro, Vicente-Villardon y Galindo (2004), Interciencia 29(1), 26-32.
+#  Autores: Kleber Garzon y Roxana Barrezueta. Licencia GPL (>= 3).
 # =============================================================================
 #  Modelo completo con interaccion: E = SCPC residual (dentro de las celdas),
 #  gl_E = n - (numero de celdas). Biplots disponibles:
