@@ -2661,7 +2661,7 @@
       "checksum": "49ac69516594ce7e5c633c56b33b2f50"
     },
     "R/grafico.R": {
-      "checksum": "90664204ea14a1f24b26e7053e27616f"
+      "checksum": "95998e59522aff9e166c0d6a42b97c43"
     },
     "R/motor_canonico.R": {
       "checksum": "6b7be6c9e5c026dff4c91f0d58e5ad21"
@@ -2673,7 +2673,7 @@
       "checksum": "0990e7c86b9c408a18245f1355b3e0ec"
     },
     "app.R": {
-      "checksum": "df425814f4d3ecab5b4f8d683971847e"
+      "checksum": "6a0699a5e9ae04deefb0ad8288633bf7"
     },
     "datos/arroz_varela.csv": {
       "checksum": "5a24683ffd4f204ee9021457dbd427df"

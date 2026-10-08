@@ -227,7 +227,7 @@ ui <- fluidPage(
                   selectInput("fuente", "Fuente", c("Sans" = "sans", "Serif" = "serif", "Mono" = "mono")),
                   selectInput("leyenda", "Leyenda", selected = "bottom", c("Abajo" = "bottom", "Derecha" = "right",
                                                       "Arriba" = "top", "Izquierda" = "left", "Sin leyenda" = "none")),
-                  checkboxInput("cuadricula", "Cuadrícula", TRUE),
+                  checkboxInput("cuadricula", "Cuadrícula", FALSE),
                   checkboxInput("lineas_cero", "Líneas en el origen", TRUE),
                   colourpicker::colourInput("fondo", "Color de fondo", "#FFFFFF"),
                   tags$label("Límites (vacío = automático)"),
